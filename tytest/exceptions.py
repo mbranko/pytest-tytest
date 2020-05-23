@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 
-class PluginError(Exception)
+class PluginError(Exception):
     """Base exception class"""
     pass
 
 
-class ConfigurationError(PluginError)
+class ConfigurationError(PluginError):
     """Errors in runtime configuration"""
     pass
 

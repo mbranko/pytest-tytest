@@ -1,64 +1,53 @@
 # -*- coding: utf-8 -*-
 
+import importlib
+import os
+import sys
 
-def test_bar_fixture(testdir):
-    """Make sure that pytest accepts our fixture."""
 
-    # create a temporary pytest test module
-    testdir.makepyfile("""
-        def test_sth(bar):
-            assert bar == "europython2015"
-    """)
+def test_xray_markers(testdir):
+    test_example = """
+    import pytest
 
-    # run pytest with the following cmd args
+    pytest_plugins = "pytester"
+
+    @pytest.mark.xray(test_key="XMPL-123")
+    def test_1():
+        pass
+
+    @pytest.mark.xray(test_key="XMPL-124")
+    def test_2():
+        pass
+    """
+    testdir.makepyfile(test_example)
     result = testdir.runpytest(
-        '--foo=europython2015',
-        '-v'
-    )
-
-    # fnmatch_lines does an assertion internally
-    result.stdout.fnmatch_lines([
-        '*::test_sth PASSED*',
-    ])
-
-    # make sure that that we get a '0' exit code for the testsuite
-    assert result.ret == 0
+        "--xray-plan-key=XMPL-125 --xray-fail-silently=True")
+    assert len(result.errlines) == 0
 
 
-def test_help_message(testdir):
-    result = testdir.runpytest(
-        '--help',
-    )
-    # fnmatch_lines does an assertion internally
-    result.stdout.fnmatch_lines([
-        'tytest:',
-        '*--foo=DEST_FOO*Set the value for the fixture "bar".',
-    ])
+def test_parameters(testdir):
+    test_config = """
+    param1 = range(10)
+    param2 = ['a', 'b', 'c']
+    """
+    test_example = """
+    import pytest
+    from tytest.runtime_settings import Config as C
 
+    pytest_plugins = "pytester"
 
-def test_hello_ini_setting(testdir):
-    testdir.makeini("""
-        [pytest]
-        HELLO = world
-    """)
-
-    testdir.makepyfile("""
-        import pytest
-
-        @pytest.fixture
-        def hello(request):
-            return request.config.getini('HELLO')
-
-        def test_hello_world(hello):
-            assert hello == 'world'
-    """)
-
-    result = testdir.runpytest('-v')
-
-    # fnmatch_lines does an assertion internally
-    result.stdout.fnmatch_lines([
-        '*::test_hello_world PASSED*',
-    ])
-
-    # make sure that that we get a '0' exit code for the testsuite
-    assert result.ret == 0
+    @pytest.mark.parametrize('param1', C.param1)
+    @pytest.mark.parametrize('param2', C.param2)
+    def test_1(param1, param2):
+        pass
+    """
+    testdir.makepyfile(__init__="")
+    testdir.makepyfile(runconfig=test_config)
+    testdir.makepyfile(test_example)
+    test_dir_name = os.path.join(
+        testdir.tmpdir.dirname, testdir.tmpdir.basename)
+    sys.path.append(test_dir_name)
+    importlib.invalidate_caches()
+    importlib.import_module('runconfig')
+    result = testdir.runpytest("--runconfig", "runconfig.py")
+    assert len(result.errlines) == 0

@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-import json
 import requests
-import pytz
 from tzlocal import get_localzone
-from runtime_settings import Settings
-from exceptions import XrayAuthError, XraySubmissionError, JiraError
+from .runtime_settings import Settings
+from .exceptions import XrayAuthError, XraySubmissionError, JiraError
+
 
 def to_xray_timestamp(ts):
     local_tz = get_localzone()
@@ -17,8 +16,11 @@ def to_xray_timestamp(ts):
 
 def authenticate_xray():
     if not Settings.XRAY_TOKEN:
-        credentials = {'client_id': Settings.XRAY_CLIENT_ID, 'client_secret': Settings.XRAY_CLIENT_SECRET}
-        r = requests.post(f'{Settings.XRAY_HOST}/api/v1/authenticate', json=credentials)
+        credentials = {'client_id': Settings.XRAY_CLIENT_ID,
+                       'client_secret': Settings.XRAY_CLIENT_SECRET}
+        r = requests.post(
+            f'{Settings.XRAY_HOST}/api/v1/authenticate',
+            json=credentials)
         if r.status_code != 200 and not Settings.XRAY_FAIL_SILENTLY:
             raise XrayAuthError
         Settings.XRAY_TOKEN = r.json()
@@ -27,14 +29,16 @@ def authenticate_xray():
 
 def send_test_results(test_results):
     headers = authenticate_xray()
-    r = requests.post(f'{Settings.XRAY_HOST}/api/v1/import/execution', headers=headers, json=test_results)
+    r = requests.post(f'{Settings.XRAY_HOST}/api/v1/import/execution',
+                      headers=headers, json=test_results)
     if r.status_code != 200 and not Settings.XRAY_FAIL_SILENTLY:
         raise XraySubmissionError
     output = r.json()
     return output
 
 
-def add_remote_link(issue_id, remote_link, title, icon_url='https://www.jenkins.io/favicon.ico'):
+def add_remote_link(issue_id, remote_link, title,
+                    icon_url='https://www.jenkins.io/favicon.ico'):
     req = {
         'object': {
             'url': remote_link,
@@ -45,14 +49,19 @@ def add_remote_link(issue_id, remote_link, title, icon_url='https://www.jenkins.
             }
         }
     }
-    r = requests.post(f'{Settings.JIRA_HOST}/rest/api/2/issue/{issue_id}/remotelink', auth=Settings.JIRA_AUTH, json=req)
+    r = requests.post(
+        f'{Settings.JIRA_HOST}/rest/api/2/issue/{issue_id}/remotelink',
+        auth=Settings.JIRA_AUTH, json=req)
     if r.status_code != 200 and not Settings.XRAY_FAIL_SILENTLY:
         raise JiraError
     output = r.json()
     return output
 
 
-def make_initial_test_result(start_time=datetime.now(), end_time=datetime.now(), summary=f'Execution of plan {Settings.XRAY_PLAN_KEY}'):
+def make_initial_test_result(
+        start_time=datetime.now(),
+        end_time=datetime.now(),
+        summary=f'Execution of plan {Settings.XRAY_PLAN_KEY}'):
     return {
         'info': {
             'summary': summary,
@@ -61,5 +70,5 @@ def make_initial_test_result(start_time=datetime.now(), end_time=datetime.now(),
             'testPlanKey': Settings.XRAY_PLAN_KEY,
             'testEnvironments': []
         },
-        'tests': []        
+        'tests': []
     }

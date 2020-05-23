@@ -90,7 +90,7 @@ Create one or more run configuration files as Python modules, such as this::
         dip_total_time_pu = 0.95
 
 
-All module attributes will be available at runtime as 
+All module attributes will be available at runtime as
 `runtime_settings.Config.attr_name`, for example::
 
 

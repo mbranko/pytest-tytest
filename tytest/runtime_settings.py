@@ -21,3 +21,8 @@ class Settings:
 class Stats:
     START_TIME = None
     END_TIME = None
+
+
+class TestExecutionResult:
+    xray_keys = {}
+    functions = {}

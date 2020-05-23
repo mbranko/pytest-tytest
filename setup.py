@@ -13,7 +13,7 @@ def read(fname):
 
 setup(
     name='pytest-tytest',
-    version='0.1.2',
+    version='0.1.3',
     author='Branko Milosavljevic',
     author_email='branko@typhoon-hil.com',
     maintainer='Branko Milosavljevic',
@@ -22,9 +22,14 @@ setup(
     url='https://github.com/mbranko/pytest-tytest',
     description='Typhoon HIL plugin for pytest',
     long_description=read('README.rst'),
-    py_modules=['pytest_tytest'],
-    python_requires='>=3.5',
-    install_requires=['pytest>=5.0.0', 'pytz>=2020.1', 'tzlocal>=2.1', 'requests>=2.23'],
+    long_description_content_type='text/x-rst',
+    packages=['tytest'],
+    python_requires='>=3.6',
+    install_requires=[
+        'pytest>=5.4.2',
+        'pytz>=2020.1',
+        'tzlocal>=2.1',
+        'requests>=2.23'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Framework :: Pytest',
@@ -32,18 +37,15 @@ setup(
         'Topic :: Software Development :: Testing',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy',
         'Operating System :: OS Independent',
         'License :: OSI Approved :: MIT License',
     ],
     entry_points={
         'pytest11': [
-            'tytest = pytest_tytest',
+            'tytest = tytest.plugin',
         ],
     },
 )

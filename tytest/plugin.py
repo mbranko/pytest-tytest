@@ -1,29 +1,31 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
+import importlib
+import os
 import pytest
-from xray_api import make_initial_test_result, send_test_results
-from runtime_settings import Cfg, Settings, Stats
+from .utils import read_or_get
+from .xray_api import make_initial_test_result, send_test_results
+from .runtime_settings import Config, Settings, Stats, TestExecutionResult
 
 
 def pytest_addoption(parser):
     group = parser.getgroup('tytest')
     group.addoption(
-        '--runconfig', 
-        dest='runconfig', 
-        default='runconfig.py', 
+        '--runconfig',
+        dest='runconfig',
         help='Test parameters script')
     group.addoption(
         '--secrets-file',
         dest='secrets',
-        default='/private/secrets',
         help='Full path to secrets file')
     group.addoption(
         '--xray-plan-key',
-        dest='xray_plan_key', 
-        help='Key of the Xray issue that represents the test plan that is being run')
+        dest='xray_plan_key',
+        help='Xray test plan key')
     group.addoption(
         '--xray-fail-silently',
-        dest='xray_fail_silently', 
+        dest='xray_fail_silently',
         default='False',
         help='Ignore Xray communication errors')
 
@@ -50,28 +52,35 @@ def xray_fail_silently(request):
 
 def pytest_configure(config):
     # import runtime configuration module
-    file_name = config.getoption('runconfig') 
-    if os.path.isfile(file_name):
+    file_name = config.getoption('runconfig')
+    if file_name and os.path.isfile(file_name):
         if file_name.endswith('.py'):
             file_name = os.path.splitext(file_name)[0]
         Settings.RUN_CONFIG = file_name
+        print("XXXXXX")
+        print(file_name)
+        print("XXXXXX")
         module = importlib.import_module(file_name)
         if module:
             for key, value in module.__dict__.items():
                 if not key.startswith('_'):
-                    setattr(Cfg, key, value)
+                    setattr(Config, key, value)
 
     # register mark for Xray
-    config.addinivalue_line('markers', 'xray(test_key): Issue key of the test in Xray')
+    config.addinivalue_line(
+        'markers',
+        'xray(test_key): Issue key of the test in Xray')
 
     Settings.XRAY_PLAN_KEY = config.getoption('xray_plan_key')
     Settings.XRAY_FAIL_SILENTLY = bool(config.getoption('xray_fail_silently'))
 
     # initialize secret params
     secrets = config.getoption('secrets')
-    Settings.XRAY_HOST = read_or_get(secrets, 'XRAY_HOST', 'https://xray.cloud.xpand-it.com')
+    Settings.XRAY_HOST = read_or_get(
+        secrets, 'XRAY_HOST', 'https://xray.cloud.xpand-it.com')
     Settings.XRAY_CLIENT_ID = read_or_get(secrets, 'XRAY_CLIENT_ID', '')
-    Settings.XRAY_CLIENT_SECRET = read_or_get(secrets, 'XRAY_CLIENT_SECRET', '')
+    Settings.XRAY_CLIENT_SECRET = read_or_get(
+        secrets, 'XRAY_CLIENT_SECRET', '')
     Settings.JIRA_HOST = read_or_get(secrets, 'JIRA_HOST', '')
     Settings.JIRA_USER = read_or_get(secrets, 'JIRA_USER', '')
     Settings.JIRA_PASSWORD = read_or_get(secrets, 'JIRA_PASSWORD', '')
@@ -87,26 +96,30 @@ def pytest_collection_modifyitems(config, items):
 
 def pytest_terminal_summary(terminalreporter):
     Stats.END_TIME = datetime.now()
-    result = make_initial_test_result(start_time=Stats.START_TIME, end_time=Stats.END_TIME)
+    result = make_initial_test_result(
+        start_time=Stats.START_TIME, end_time=Stats.END_TIME)
     _fill_keys(terminalreporter.stats, 'passed')
     _fill_keys(terminalreporter.stats, 'failed')
     _fill_keys(terminalreporter.stats, 'skipped')
 
     for key, values in TestExecutionResult.xray_keys.items():
-        test = { 'testKey': key, 'status': 'PASSED', 'steps': [] }
+        test = {'testKey': key, 'status': 'PASSED', 'steps': []}
         for item in values:
-            if test['status'] =='PASSED' and item.outcome == 'failed':
+            if test['status'] == 'PASSED' and item.outcome == 'failed':
                 test['status'] = 'FAILED'
             step = {
-                'status': item.outcome.upper(), 
+                'status': item.outcome.upper(),
                 'comment': item.nodeid,
             }
             if item.outcome == 'failed':
                 step['actualResult'] = str(item.longrepr)
             test['steps'].append(step)
         result['tests'].append(test)
-    # print(json.dumps(result, indent=2))
     send_test_results(result)
+
+
+def pytest_sessionfinish(session):
+    pass
 
 
 def _fill_keys(stats, outcome):
