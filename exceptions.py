@@ -1,6 +1,17 @@
 # -*- coding: utf-8 -*-
 
-class CommunicationError(Exception):
+
+class PluginError(Exception)
+    """Base exception class"""
+    pass
+
+
+class ConfigurationError(PluginError)
+    """Errors in runtime configuration"""
+    pass
+
+
+class CommunicationError(PluginError):
     """Base exception class"""
     pass
 

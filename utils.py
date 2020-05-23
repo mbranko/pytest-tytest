@@ -3,6 +3,7 @@
 from configparser import ConfigParser
 import csv
 import os
+from exceptions import ConfigurationError
 
 
 def csvfile(file_name):
@@ -21,6 +22,8 @@ def get_variable(variable_name, default_value):
     if variable_name in os.environ:
         return os.environ[variable_name]
     else:
+        if not default_value:
+            raise ConfigurationError(f'Variable not set: {variable_name}')
         return default_value
 
 
@@ -32,10 +35,10 @@ def read_variable(file_name, variable_name):
             parser.read_file(lines)
         return parser['top'][variable_name]
     except IOError as ex:
-        raise ImproperlyConfigured(f'File could not be read: {file_name}')
+        raise ConfigurationError(f'File could not be read: {file_name}')
     except KeyError as ex:
-        raise ImproperlyConfigured(f'Variable not found: {variable_name}')
+        raise ConfigurationError(f'Variable not found: {variable_name}')
 
 
-def read_or_get(file_name, variable_name, default_value):
+def read_or_get(file_name, variable_name, default_value=None):
     return read_variable(file_name, variable_name) or get_variable(variable_name, default_value)
