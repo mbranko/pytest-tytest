@@ -14,11 +14,6 @@ pytest-tytest
     :target: https://travis-ci.org/mbranko/pytest-tytest
     :alt: See Build Status on Travis CI
 
-.. image:: https://ci.appveyor.com/api/projects/status/github/mbranko/pytest-tytest?branch=master
-    :target: https://ci.appveyor.com/project/mbranko/pytest-tytest/branch/master
-    :alt: See Build Status on AppVeyor
-
-
 Typhoon HIL plugin for pytest
 =============================
 
