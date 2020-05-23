@@ -19,10 +19,6 @@ pytest-tytest
     :alt: See Build Status on AppVeyor
 
 Typhoon HIL plugin for pytest
-----
-
-This `pytest`_ plugin was generated with `Cookiecutter`_ along with `@hackebrot`_'s `cookiecutter-pytest-plugin`_ template.
-
 
 Features
 --------
