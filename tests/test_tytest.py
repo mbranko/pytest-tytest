@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import importlib
-import os
-import sys
-
 
 def test_xray_markers(testdir):
     test_example = """
@@ -44,10 +40,5 @@ def test_parameters(testdir):
     testdir.makepyfile(__init__="")
     testdir.makepyfile(runconfig=test_config)
     testdir.makepyfile(test_example)
-    test_dir_name = os.path.join(
-        testdir.tmpdir.dirname, testdir.tmpdir.basename)
-    sys.path.append(test_dir_name)
-    importlib.invalidate_caches()
-    importlib.import_module('runconfig')
     result = testdir.runpytest("--runconfig", "runconfig.py")
     assert len(result.errlines) == 0
