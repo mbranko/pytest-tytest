@@ -4,6 +4,7 @@ from datetime import datetime
 import importlib
 import os
 import pytest
+import sys
 from .utils import read_or_get
 from .xray_api import make_initial_test_result, send_test_results
 from .runtime_settings import Config, Settings, Stats, TestExecutionResult
@@ -54,13 +55,15 @@ def pytest_configure(config):
     # import runtime configuration module
     file_name = config.getoption('runconfig')
     if file_name and os.path.isfile(file_name):
-        if file_name.endswith('.py'):
-            file_name = os.path.splitext(file_name)[0]
         Settings.RUN_CONFIG = file_name
-        print("XXXXXX")
-        print(file_name)
-        print("XXXXXX")
-        module = importlib.import_module(file_name)
+        dirname, basename = os.path.split(os.path.abspath(file_name))
+        sys.path.append(dirname)
+        if basename.endswith('.py'):
+            module_name = os.path.splitext(basename)[0]
+        else:
+            module_name = file_name
+        importlib.invalidate_caches()
+        module = importlib.import_module(module_name)
         if module:
             for key, value in module.__dict__.items():
                 if not key.startswith('_'):

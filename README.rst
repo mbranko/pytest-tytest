@@ -71,10 +71,10 @@ Or you can store credentials in a file::
 
 Create one or more run configuration files as Python modules, such as this::
 
-    # runconfig1.py
+    # myparams.py
     import numpy as np
 
-    v_range = [277.0]
+    v_range = [277.0, 278.0]
     f_range = np.arange(58, 63, 0.2)
     vdc_range = [820.0]
 
@@ -85,7 +85,6 @@ Create one or more run configuration files as Python modules, such as this::
 
 All module attributes will be available at runtime as
 `runtime_settings.Config.attr_name`, for example::
-
 
     from runtime_settings import Config as C
 
@@ -102,7 +101,6 @@ Mark your tests with Jira issue keys, such as this::
 
 pytest invocation now has some additional command line parameters::
 
-
   --runconfig=RUNCONFIG
                         Specify test config script
   --secrets=SECRETS     Full path to secrets file
@@ -113,12 +111,14 @@ pytest invocation now has some additional command line parameters::
 
 An example of invoking `pytest`::
 
-    pytest --runconfig=myconfig.py --secrets=/private/secrets --xray-plan-key=PRJ-321 --xray-fail-silently=True
+    pytest --runconfig=myparams.py --secrets=/private/secrets --xray-plan-key=PRJ-321 --xray-fail-silently=True
+
 
 Contributing
 ------------
 Contributions are very welcome. Tests can be run with `tox`_, please ensure
 the coverage at least stays the same before you submit a pull request.
+
 
 License
 -------
