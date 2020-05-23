@@ -84,9 +84,9 @@ Create one or more run configuration files as Python modules, such as this::
 
 
 All module attributes will be available at runtime as
-`runtime_settings.Config.attr_name`, for example::
+`tytest.runtime_settings.Config.attr_name`, for example::
 
-    from runtime_settings import Config as C
+    from tytest.runtime_settings import Config as C
 
     @python.mark.parametrize('v_range', C.v_range)
     def test_something(v_range):
