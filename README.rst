@@ -28,13 +28,18 @@ This `pytest`_ plugin was generated with `Cookiecutter`_ along with `@hackebrot`
 Features
 --------
 
-* TODO
+* specify test parameters in a python module
+* reference them in `pytest.mark.parametrize` decorators
+* mark tests as Jira+Xray issues
+* send test reports directly to Xray using Xray's REST API
 
 
 Requirements
 ------------
 
-* TODO
+* pytest 5+
+* pytz, tzlocal
+* requests 2.23+
 
 
 Installation
@@ -48,7 +53,74 @@ You can install "pytest-tytest" via `pip`_ from `PyPI`_::
 Usage
 -----
 
-* TODO
+Put credentials needed to access Jira and Xray in environment variables or a
+file.
+
+* `XRAY_HOST`: Xray URL, defaults to `https://xray.cloud.xpand-it.com`
+* `XRAY_CLIENT_ID`: Client ID of your Xray API key
+* `XRAY_CLIENT_SECRET`: Client secret of your Xray API key
+* `JIRA_HOST`: Your Jira host, probably `https://mycompany.atlassian.net`
+* `JIRA_USER`: Your Jira account username, probably your email address
+* `JIRA_PASSWORD`: Your Jira account password
+
+You can define credentials as environment variables::
+
+    export XRAY_CLIENT_ID=...
+    export XRAY_CLIENT_SECRET=...
+
+
+Or you can store credentials in a file::
+
+    XRAY_CLIENT_ID=...
+    XRAY_CLIENT_SECRET=...
+    ...
+
+
+Create one or more run configuration files as Python modules, such as this::
+
+    # runconfig1.py
+    import numpy as np
+
+    v_range = [277.0]
+    f_range = np.arange(58, 63, 0.2)
+    vdc_range = [820.0]
+
+    class StayConnected:
+        voltage_dip_perc = [22, 45, 85, 95]
+        dip_total_time_pu = 0.95
+
+
+All module attributes will be available at runtime as 
+`runtime_settings.Config.attr_name`, for example::
+
+
+    from runtime_settings import Config as C
+
+    @python.mark.parametrize('v_range', C.v_range)
+    def test_something(v_range):
+        pass
+
+
+Mark your tests with Jira issue keys, such as this::
+
+    @pytest.mark.xray(test_key='PRJ-123')
+    def test_something():
+        pass
+
+pytest invocation now has some additional command line parameters::
+
+
+  --runconfig=RUNCONFIG
+                        Specify test config script
+  --secrets=SECRETS     Full path to secrets file
+  --xray-plan-key=XRAY_PLAN_KEY
+                        Key of the Xray issue that represents the test plan that is being run
+  --xray-fail-silently=XRAY_FAIL_SILENTLY
+                        Ignore Xray communication errors
+
+An example of invoking `pytest`::
+
+    pytest --runconfig=myconfig.py --secrets=/private/secrets --xray-plan-key=PRJ-321 --xray-fail-silently=True
 
 Contributing
 ------------

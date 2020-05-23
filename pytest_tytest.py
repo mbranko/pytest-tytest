@@ -24,7 +24,7 @@ def pytest_addoption(parser):
     group.addoption(
         '--xray-fail-silently',
         dest='xray_fail_silently', 
-        default='yes', 
+        default='False',
         help='Ignore Xray communication errors')
 
 
@@ -51,14 +51,15 @@ def xray_fail_silently(request):
 def pytest_configure(config):
     # import runtime configuration module
     file_name = config.getoption('runconfig') 
-    if file_name.endswith('.py'):
-        file_name = os.path.splitext(file_name)[0]
-    Settings.RUN_CONFIG = file_name
-    module = importlib.import_module(file_name)
-    if module:
-        for key, value in module.__dict__.items():
-            if not key.startswith('_'):
-                setattr(Cfg, key, value)
+    if os.path.isfile(file_name):
+        if file_name.endswith('.py'):
+            file_name = os.path.splitext(file_name)[0]
+        Settings.RUN_CONFIG = file_name
+        module = importlib.import_module(file_name)
+        if module:
+            for key, value in module.__dict__.items():
+                if not key.startswith('_'):
+                    setattr(Cfg, key, value)
 
     # register mark for Xray
     config.addinivalue_line('markers', 'xray(test_key): Issue key of the test in Xray')
