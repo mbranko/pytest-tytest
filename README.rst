@@ -57,7 +57,7 @@ file.
 * `XRAY_CLIENT_SECRET`: Client secret of your Xray API key
 * `JIRA_HOST`: Your Jira host, probably `https://mycompany.atlassian.net`
 * `JIRA_USER`: Your Jira account username, probably your email address
-* `JIRA_PASSWORD`: Your Jira account password
+* `JIRA_PASSWORD`: Your Jira API token, **not your password**
 
 You can define credentials as environment variables::
 
