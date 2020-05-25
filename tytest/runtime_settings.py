@@ -16,6 +16,7 @@ class Settings:
     JIRA_PASSWORD = ''
     JIRA_AUTH = []
     RUN_CONFIG = ''
+    ALLURE_URL = ''
 
 
 class Stats:

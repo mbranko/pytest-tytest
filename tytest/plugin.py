@@ -17,7 +17,7 @@ def pytest_addoption(parser):
         dest='runconfig',
         help='Test parameters script')
     group.addoption(
-        '--secrets-file',
+        '--secrets',
         dest='secrets',
         help='Full path to secrets file')
     group.addoption(
@@ -29,6 +29,10 @@ def pytest_addoption(parser):
         dest='xray_fail_silently',
         default='False',
         help='Ignore Xray communication errors')
+    group.addoption(
+        '--allure-url',
+        dest='allure_url',
+        help='URL pointing to the Allure report')
 
 
 @pytest.fixture
@@ -49,6 +53,11 @@ def xray_plan_key(request):
 @pytest.fixture
 def xray_fail_silently(request):
     return request.config.option.xray_fail_silently
+
+
+@pytest.fixture
+def allure_url(request):
+    return request.config.option.allure_url
 
 
 def pytest_configure(config):
@@ -76,6 +85,7 @@ def pytest_configure(config):
 
     Settings.XRAY_PLAN_KEY = config.getoption('xray_plan_key')
     Settings.XRAY_FAIL_SILENTLY = bool(config.getoption('xray_fail_silently'))
+    Settings.ALLURE_URL = config.getoption('allure_url')
 
     # initialize secret params
     secrets = config.getoption('secrets')
@@ -106,17 +116,20 @@ def pytest_terminal_summary(terminalreporter):
     _fill_keys(terminalreporter.stats, 'skipped')
 
     for key, values in TestExecutionResult.xray_keys.items():
-        test = {'testKey': key, 'status': 'PASSED', 'steps': []}
+        test = {'testKey': key, 'status': 'PASSED', 'comment': ''}
+        stat_counter = {'passed': 0, 'failed': 0, 'skipped': 0}
         for item in values:
             if test['status'] == 'PASSED' and item.outcome == 'failed':
                 test['status'] = 'FAILED'
-            step = {
-                'status': item.outcome.upper(),
-                'comment': item.nodeid,
-            }
+            stat_counter[item.outcome] += 1
+            test['comment'] += f'{item.outcome.upper()}: {item.nodeid}\n'
             if item.outcome == 'failed':
-                step['actualResult'] = str(item.longrepr)
-            test['steps'].append(step)
+                test['comment'] += str(item.longrepr) + '\n'
+        total = len(values)
+        test['comment'] = _stat('PASSED', stat_counter['passed'], total) + \
+            "   " + _stat('FAILED', stat_counter['failed'], total) + \
+            "   " + _stat('SKIPPED', stat_counter['skipped'], total) + "\n" + \
+            test['comment']
         result['tests'].append(test)
     send_test_results(result)
 
@@ -148,3 +161,7 @@ def _store_item(item):
         return
     test_key = marker.kwargs['test_key']
     TestExecutionResult.functions[item.nodeid] = test_key
+
+
+def _stat(type, counter, total):
+    return f"{type}: {counter} ({round(counter/total*100, 2)})"

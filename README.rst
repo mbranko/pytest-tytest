@@ -46,6 +46,9 @@ You can install "pytest-tytest" via `pip`_ from `PyPI`_::
 Usage
 -----
 
+Credentials for Jira and Xray
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Put credentials needed to access Jira and Xray in environment variables or a
 file.
 
@@ -62,14 +65,24 @@ You can define credentials as environment variables::
     export XRAY_CLIENT_SECRET=...
 
 
-Or you can store credentials in a file::
+Or you can store credentials in a file, for example, `/private/secrets`::
 
     XRAY_CLIENT_ID=...
     XRAY_CLIENT_SECRET=...
     ...
 
+Don't put the variable values in quotes.
 
-Create one or more run configuration files as Python modules, such as this::
+If you use a file to store credentials, you should use the `secrets` command
+line parameter:
+
+    pytest --secrets=/private/secrets
+
+
+Test parameters defined in Python modules
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Create a test parameter definition file as a Python module, such as this::
 
     # myparams.py
     import numpy as np
@@ -93,11 +106,43 @@ All module attributes will be available at runtime as
         pass
 
 
+Specify which parameter definition file you are using in command line::
+
+    pytest --runconfig=myparams.py
+
+
+Marking tests for Xray reporting
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Mark your tests with Jira issue keys, such as this::
 
     @pytest.mark.xray(test_key='PRJ-123')
     def test_something():
         pass
+
+Associate your test run with a test plan in Xray using the test plan key::
+
+    pytest --xray-plan-key=DEMO-1234
+
+
+If you want to ignore potential networking errors while submitting test
+reports to Xray, turn this flag on::
+
+    pytest --xray-plan-key=DEMO-1234 --xray-fail-silently=True
+
+
+Embedding the Allure report link
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you generate an Allure report during a test run, you can embed the link
+to the report in Xray's test execution issue by using this command line
+parameter::
+
+    pytest allure-url=https://jenkins.mycompany.com/jobs/my_job/123/allure
+
+
+Command-line parameter summary
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 pytest invocation now has some additional command line parameters::
 
@@ -108,10 +153,12 @@ pytest invocation now has some additional command line parameters::
                         Key of the Xray issue that represents the test plan that is being run
   --xray-fail-silently=XRAY_FAIL_SILENTLY
                         Ignore Xray communication errors
+  --allure-url=ALLURE_URL
+                        URL pointing to the Allure report
 
 An example of invoking `pytest`::
 
-    pytest --runconfig=myparams.py --secrets=/private/secrets --xray-plan-key=PRJ-321 --xray-fail-silently=True
+    pytest --runconfig=myparams.py --secrets=/private/secrets --xray-plan-key=PRJ-321 --xray-fail-silently=True --allure-url=https://jenkins.mycompany.com/jobs/my_job/123/allure
 
 
 Contributing
