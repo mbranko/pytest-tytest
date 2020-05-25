@@ -38,7 +38,7 @@ def send_test_results(test_results):
 
 
 def add_remote_link(issue_id, remote_link, title,
-                    icon_url='https://www.jenkins.io/favicon.ico'):
+                    icon_url='http://allure.qatools.ru/img/favicon.ico'):
     req = {
         'object': {
             'url': remote_link,
