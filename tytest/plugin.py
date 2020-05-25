@@ -167,4 +167,4 @@ def _store_item(item):
 
 
 def _stat(type, counter, total):
-    return f"{type}: {counter} ({round(counter/total*100, 2)})"
+    return f"{type}: {counter} ({round(counter/total*100, 2)}%)"
