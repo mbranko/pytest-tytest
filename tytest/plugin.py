@@ -6,7 +6,8 @@ import os
 import pytest
 import sys
 from .utils import read_or_get
-from .xray_api import make_initial_test_result, send_test_results
+from .xray_api import make_initial_test_result, send_test_results, \
+    add_remote_link
 from .runtime_settings import Config, Settings, Stats, TestExecutionResult
 
 
@@ -131,7 +132,9 @@ def pytest_terminal_summary(terminalreporter):
             "   " + _stat('SKIPPED', stat_counter['skipped'], total) + "\n" + \
             test['comment']
         result['tests'].append(test)
-    send_test_results(result)
+    new_issue = send_test_results(result)
+    if Settings.ALLURE_URL:
+        add_remote_link(new_issue['id'], Settings.ALLURE_URL, 'Allure report')
 
 
 def pytest_sessionfinish(session):
