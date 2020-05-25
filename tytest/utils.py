@@ -38,7 +38,7 @@ def read_variable(file_name, variable_name):
     except IOError:
         raise ConfigurationError(f'File could not be read: {file_name}')
     except KeyError:
-        raise ConfigurationError(f'Variable not found: {variable_name}')
+        return None
 
 
 def read_or_get(file_name, variable_name, default_value=None):
